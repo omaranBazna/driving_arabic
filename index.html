@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار القيادة التفاعلي</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.3);
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: #4ade80;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .question-container {
+            padding: 40px;
+            min-height: 400px;
+        }
+
+        .question-number {
+            color: #667eea;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .question-text {
+            font-size: 1.3em;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            color: #1f2937;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            font-size: 1.1em;
+        }
+
+        .option:hover {
+            background: #e5e7eb;
+            transform: translateX(-5px);
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: #ede9fe;
+        }
+
+        .option.correct {
+            border-color: #10b981;
+            background: #d1fae5;
+        }
+
+        .option.incorrect {
+            border-color: #ef4444;
+            background: #fee2e2;
+        }
+
+        .drag-drop-container {
+            background: #f9fafb;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .sentence {
+            font-size: 1.3em;
+            line-height: 2;
+            min-height: 60px;
+        }
+
+        .drop-zone {
+            display: inline-block;
+            min-width: 120px;
+            min-height: 40px;
+            background: white;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 8px 16px;
+            margin: 0 5px;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .drop-zone.filled {
+            border-style: solid;
+            background: #ede9fe;
+        }
+
+        .drop-zone.correct {
+            border-color: #10b981;
+            background: #d1fae5;
+        }
+
+        .drop-zone.incorrect {
+            border-color: #ef4444;
+            background: #fee2e2;
+        }
+
+        .draggable-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .draggable {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: move;
+            font-size: 1.1em;
+            user-select: none;
+        }
+
+        .draggable:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+
+        .draggable.dragging {
+            opacity: 0.5;
+        }
+
+        .draggable.used {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: #d1fae5;
+            color: #065f46;
+            border-right: 5px solid #10b981;
+        }
+
+        .feedback.incorrect {
+            background: #fee2e2;
+            color: #991b1b;
+            border-right: 5px solid #ef4444;
+        }
+
+        .result-container {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .result-container h2 {
+            font-size: 2.5em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .score {
+            font-size: 4em;
+            font-weight: bold;
+            color: #10b981;
+            margin: 30px 0;
+        }
+
+        .result-message {
+            font-size: 1.3em;
+            color: #4b5563;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>اختبار القيادة التفاعلي</h1>
+            <p>اختبر معلوماتك في قوانين المرور</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="question-container" id="questionContainer"></div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                type: 'multiple',
+                question: 'عندما تقترب منك سيارة طوارئ متسلسلة (هورن) والأضواء المتلألئة (فلاش) يجب أن:',
+                options: [
+                    'تتحرك إلى الجانب الأيمن من الطريق وتتوقف',
+                    'لا تستطيع رؤيته في مرآتك الخلفية قبل الانتقال إلى المسار الوسط',
+                    'تبقى تقود من فوق كتفك الأيسر'
+                ],
+                correct: [0],
+                explanation: 'يجب عليك التحرك إلى الجانب الأيمن من الطريق والتوقف للسماح لسيارة الطوارئ بالمرور بأمان.'
+            },
+            {
+                type: 'multiple',
+                question: 'لا تتحقق من المنطقة المخفية التي لا تستطيع رؤيتها في مرآتك الخلفية قبل الانتقال إلى المسار الوسط يجب أن؟',
+                options: [
+                    'تبقى تقود من فوق كتفك الأيسر',
+                    'تنظر في المرايا فقط',
+                    'تعتمد على الحدس'
+                ],
+                correct: [0],
+                explanation: 'يجب النظر من فوق كتفك الأيسر للتحقق من المنطقة المخفية قبل تغيير المسار.'
+            },
+            {
+                type: 'multiple',
+                question: 'عند تقاطع طرق في الضوء (قبل حلول الظلام) تتذكر أن:',
+                options: [
+                    'أنه قد يكون من الصعب على السائقين رؤيتك',
+                    'عند تقاطع طرق وذكر سيارة آتية من اليسار يجب عليك أن تستعد للتوقف وتعطي المنطق الآخر حق المرور',
+                    'يمكنك القيادة بسرعة عالية'
+                ],
+                correct: [0, 1],
+                explanation: 'في الضوء الخافت، من الصعب على السائقين رؤيتك، ويجب دائماً إعطاء الأولوية للسيارات القادمة من اليسار.'
+            },
+            {
+                type: 'multiple',
+                question: 'وأثناء تقطع طرق في الضوء (قبل حلول الظلام) تتذكر أن؟',
+                options: [
+                    'إنه قد يكون من الصعب على السائقين رؤيتك',
+                    'يجب عليك تخفيض السرعة عند تقاطع الطرق',
+                    'لا حاجة للحذر'
+                ],
+                correct: [0, 1],
+                explanation: 'يجب توخي الحذر الشديد عند التقاطعات في الإضاءة الخافتة وتخفيض السرعة.'
+            },
+            {
+                type: 'multiple',
+                question: 'على طريق ذي كم نابية من زمن السواقة يجب عليك أن تتجنب السواقة التي أمامك؟',
+                options: [
+                    'نعم، يجب تجنبها',
+                    'لا، يمكن الاقتراب منها',
+                    'غير مهم'
+                ],
+                correct: [0],
+                explanation: 'يجب تجنب السيارة التي أمامك والحفاظ على مسافة آمنة للتفاعل مع أي طارئ.'
+            },
+            {
+                type: 'dragdrop',
+                question: 'أكمل الجملة:',
+                sentence: 'المشروع والمرور ذات الضوء الأصفر الفاتح تعني [blank]',
+                blanks: 1,
+                options: ['تقدم بحذر', 'توقف فوراً', 'أسرع', 'انعطف'],
+                correct: ['تقدم بحذر'],
+                explanation: 'الضوء الأصفر الفاتح يعني التقدم بحذر والاستعداد للتوقف.'
+            },
+            {
+                type: 'multiple',
+                question: 'على طريق ذي كم نابية من زمن السواقة يجب عليه أن يتجنب السواقة التي أمامه إن تتحول السواقة التي أمامك؟',
+                options: [
+                    'سمتا قلقان',
+                    'ج - سمتا قلقان',
+                    'لا تنتظر'
+                ],
+                correct: [0],
+                explanation: 'يجب الانتظار في حال تحول السيارة التي أمامك.'
+            },
+            {
+                type: 'multiple',
+                question: 'قبل دخولك تقاطع طرق في الضوء (قبل حلول الظلام) تتذكر أن؟',
+                options: [
+                    'أنه قد يكون من الصعب على السائقين رؤيتك',
+                    'يمكن السير بسرعة',
+                    'لا حاجة للحذر'
+                ],
+                correct: [0],
+                explanation: 'في الإضاءة المنخفضة، تكون الرؤية صعبة ويجب توخي الحذر الشديد.'
+            },
+            {
+                type: 'multiple',
+                question: 'وأثناء تقطع طرق وذكر سيارة أتية من اليسار يجب عليك أن؟',
+                options: [
+                    'تستعد للتوقف وتعطي المنطق الآخر حق المرور',
+                    'تسرع للمرور قبلها',
+                    'تتجاهلها'
+                ],
+                correct: [0],
+                explanation: 'يجب دائماً إعطاء الأولوية للسيارات القادمة من اليسار والاستعداد للتوقف.'
+            },
+            {
+                type: 'multiple',
+                question: 'جزء من مسار الخط على الطريق المزدج مغلق بسبب اشغال البناء أو الصيانة أو الفحص فإن الحد الأقصى للسرعة هو؟',
+                options: [
+                    'ب - 45 ميلا في الساعة',
+                    '60 ميلا في الساعة',
+                    '30 ميلا في الساعة'
+                ],
+                correct: [0],
+                explanation: 'في مناطق العمل والصيانة، الحد الأقصى للسرعة هو 45 ميلاً في الساعة.'
+            },
+            {
+                type: 'multiple',
+                question: 'الموقع الكفيل في السيارة فإن حزام الأمان يجب أن يستعمل؟',
+                options: [
+                    'ج - الأطفال من سن 4 إلى 16 سنة',
+                    'فقط للبالغين',
+                    'اختياري'
+                ],
+                correct: [0],
+                explanation: 'حزام الأمان إلزامي للأطفال من سن 4 إلى 16 سنة.'
+            },
+            {
+                type: 'multiple',
+                question: 'عند تقاطع الطرق حيث تحجب الأشجار والمباني رؤيتك لكلا الجانبين يجب عليك أن؟',
+                options: [
+                    'أ - تتوقف عند التقاطع ثم تتقدم ببطء أمام',
+                    'تسرع للمرور',
+                    'تستخدم البوق فقط'
+                ],
+                correct: [0],
+                explanation: 'يجب التوقف ثم التقدم ببطء عندما تكون الرؤية محجوبة.'
+            },
+            {
+                type: 'dragdrop',
+                question: 'أكمل الجملة:',
+                sentence: 'عند مسار مدخل الطريق السريع يجب عليك التحقق من المرور على الطريق السريع ثم [blank]',
+                blanks: 1,
+                options: ['تستخدم مرايا سيارتك للرؤية الخلفية ونقط نظرات من فوق كتفك', 'تسرع مباشرة', 'تتوقف تماماً', 'تنظر للأمام فقط'],
+                correct: ['تستخدم مرايا سيارتك للرؤية الخلفية ونقط نظرات من فوق كتفك'],
+                explanation: 'يجب استخدام المرايا والنظر من فوق الكتف للتحقق من المنطقة المخفية.'
+            },
+            {
+                type: 'multiple',
+                question: 'عند دخولك مع السير من مكان التوقف يجانب الرصيف يجب عليك أن تنظر في مرايا سيارتك للتأكد بأن؟',
+                options: [
+                    'ب - تنظر من فوق كتفك على السيارة القادمة',
+                    'تنظر للأمام فقط',
+                    'تسرع مباشرة'
+                ],
+                correct: [0],
+                explanation: 'يجب النظر من فوق الكتف للتأكد من عدم وجود سيارات قادمة.'
+            },
+            {
+                type: 'multiple',
+                question: 'إذا لم تستطع التوقف قبل أن تصدم سيارة أخرى فأنت من المرور لان؟',
+                options: [
+                    'ب - تحاول الصولة حول السيارة وتتجنب استعمال (البريكت) بشدة',
+                    'تستخدم البوق فقط',
+                    'تغمض عينيك'
+                ],
+                correct: [0],
+                explanation: 'حاول المناورة حول السيارة وتجنب الفرملة المفاجئة التي قد تسبب انزلاق.'
+            },
+            {
+                type: 'multiple',
+                question: 'عدم وجود علامة تشير إلى الحد الأقصى للسرعة عندما يكون؟',
+                options: [
+                    'ج - تعادل تقدير هذه المنطقة وتغير السرعة تبعا لذلك',
+                    'اسرع بأقصى سرعة',
+                    'توقف تماماً'
+                ],
+                correct: [0],
+                explanation: 'عند عدم وجود علامات، يجب تقدير الوضع والقيادة بسرعة مناسبة للظروف.'
+            },
+            {
+                type: 'dragdrop',
+                question: 'أكمل الجملة:',
+                sentence: 'حقيقتاً أكتبت توامر ثم شربت الكحول [blank]',
+                blanks: 1,
+                options: ['أ - يمكن أن تكون النتائج خطيرة', 'لا تأثير', 'مفيد', 'آمن'],
+                correct: ['أ - يمكن أن تكون النتائج خطيرة'],
+                explanation: 'الجمع بين الأدوية والكحول خطير جداً ويمكن أن يكون قاتلاً.'
+            },
+            {
+                type: 'multiple',
+                question: 'أثناب تقود السيارة المهيئة و المخططة الصفراء على الطريق في الاتجاهين تعني أنه؟',
+                options: [
+                    'ج - من الخطر أن تتجاوز',
+                    'يمكن التجاوز بأمان',
+                    'توقف فوراً'
+                ],
+                correct: [0],
+                explanation: 'الخطوط الصفراء المتصلة تعني منع التجاوز لأنه خطير.'
+            },
+            {
+                type: 'multiple',
+                question: 'عند الاقتراب من شخص يريد العبور للشارع و هو يحمل عصا بيضاء للشخص أعمى أو معه كلب راشده ببيفى عليك أن؟',
+                options: [
+                    'ب - تتوقف وتسمح له بالعبور',
+                    'تستخدم البوق',
+                    'تسرع'
+                ],
+                correct: [0],
+                explanation: 'يجب التوقف والسماح للشخص الأعمى بالعبور بأمان.'
+            },
+            {
+                type: 'dragdrop',
+                question: 'أكمل الجملة:',
+                sentence: 'عندما تصل إلى تقاطع سكة حديدية ليس عليها إشارة ضوئية يجب أن [blank]',
+                blanks: 1,
+                options: ['أ - تخفض السرعة وتنظر في الاتجاهين', 'تسرع', 'تتوقف لمدة طويلة', 'تغلق عينيك'],
+                correct: ['أ - تخفض السرعة وتنظر في الاتجاهين'],
+                explanation: 'يجب تخفيض السرعة والنظر في كلا الاتجاهين قبل عبور السكة الحديدية.'
+            },
+            {
+                type: 'multiple',
+                question: 'عندما تشوق سيارتك طلف أحدى سيارات البريد التي تتوقف بصورة متكررة؟',
+                options: [
+                    'ج - تسمح بمسافة كافية بين من المحكم بينك وبينها',
+                    'اقترب منها جداً',
+                    'استخدم البوق'
+                ],
+                correct: [0],
+                explanation: 'يجب ترك مسافة كافية بينك وبين سيارة البريد التي تتوقف بشكل متكرر.'
+            },
+            {
+                type: 'multiple',
+                question: 'سيارة تعير الخط الذي في وسط الشارع وتأتي بإتجاهك وبتخليل مسار سيارتك يجب أن تحاول التوقف الاضطراري؟',
+                options: [
+                    'ب - نفط في حالة وجود مسافة كافية للتوقف ولا تضطع الفرج من الطريق',
+                    'اصدم السيارة',
+                    'اقفز من السيارة'
+                ],
+                correct: [0],
+                explanation: 'في حالة وجود مسافة كافية، يجب التوقف دون الخروج من الطريق.'
+            },
+            {
+                type: 'multiple',
+                question: 'حسب القانون أن تحجب الأشجار والمباني رؤيتك لكلا الجانبين؟',
+                options: [
+                    'ج - تريع قصت عن نواحة البيزين',
+                    'تسرع',
+                    'تتجاهل الوضع'
+                ],
+                correct: [0],
+                explanation: 'يجب البقاء بعيداً عن نواحي البيزين عندما تكون الرؤية محجوبة.'
+            },
+            {
+                type: 'multiple',
+                question: 'عندما تتجاوز سيارة أخرى في طريق ذي مسارين يجب أن تعود إلى الجانب الأيمن من الطريق عندما؟',
+                options: [
+                    'أ - تستطيع أن ترى في مراتك الخلفية الضوئيين المأمليين للسيارة التي تجاوزتها',
+                    'فوراً بعد التجاوز',
+                    'بعد كيلومتر'
+                ],
+                correct: [0],
+                explanation: 'يجب العودة للمسار الأيمن فقط عندما ترى السيارة المتجاوزة بوضوح في المرآة.'
+            },
+            {
+                type: 'dragdrop',
+                question: 'أكمل الجملة:',
+                sentence: 'على طريق مبلل يمكن أن تفقد السيطرة على سيارتك بإن الإطارات تسير فوق الماء يعتبر هذا صحيحاً [blank]',
+                blanks: 1,
+                options: ['عندما', 'أبداً', 'دائماً', 'نادراً'],
+                correct: ['عندما'],
+                explanation: 'يمكن فقدان السيطرة عندما تسير الإطارات فوق الماء (الانزلاق المائي).'
+            },
+            {
+                type: 'multiple',
+                question: 'ج - عن طريق ميل يمكن إن تفقد السيطرة على سيارتك وإن الإطارات تسير فوق الماء؟',
+                options: [
+                    'صح، يعتبر هذا صحيحاً خاصة عندما',
+                    'خطأ',
+                    'لا يحدث أبداً'
+                ],
+                correct: [0],
+                explanation: 'هذا صحيح، خاصة عند السرعة العالية على الطرق المبللة.'
+            },
+            {
+                type: 'multiple',
+                question: 'ومعك أن تصور رمي لن تتقي وتفن أرد النقل تجاه المواقف النطرحة على الطريق يإن؟',
+                options: [
+                    'ج - تنظر أمامك المسافة تعادل 8 ثوانِ من زمن السياقة',
+                    'تنظر لأسفل فقط',
+                    'تنظر للخلف'
+                ],
+                correct: [0],
+                explanation: 'يجب النظر للأمام بمسافة تعادل 8 ثوان للتفاعل مع المواقف الطارئة.'
+            },
+            {
+                type: 'multiple',
+                question: 'عندما تجذب سيارتك في التزحلق الأول نى يجب عليك عمله هو أن؟',
+                options: [
+                    'ج - تريع قصت عن نواحة البيزين',
+                    'تضغط على الفرامل بقوة',
+                    'تترك المقود'
+                ],
+                correct: [0],
+                explanation: 'عند الانزلاق، يجب البقاء بعيداً عن نواحي البنزين وتجنب الفرملة القوية.'
+            },
+            {
+                type: 'multiple',
+                question: 'عندما تتجاوز سيارة أخرى في طريق ذي مسارين يجب أن تعود إلى الجانب الأيمن من الطريق عندما؟',
+                options: [
+                    'أ - تستطيع أن ترى في مراتك الخلفية الضوئيين المأمليين للسيارة التي تجاوزتها',
+                    'مباشرة',
+                    'بعد 5 دقائق'
+                ],
+                correct: [0],
+                explanation: 'انتظر حتى ترى السيارة المتجاوزة كاملة في المرآة قبل العودة للمسار.'
+            },
+            {
+                type: 'multiple',
+                question: 'ج - على طريق ميل يمكن إن تفقد المسيطرة على سيارتك وإن الإطارات تسير فوق الماء يعتبر هذا صحيحاً خاصة عندما؟',
+                options: [
+                    'أ - تستخدم برايا سيارتك بالروية الخلفية ونقطة نظرات من فوق كتفك',
+                    'تسير ببطء شديد',
+                    'الطقس جاف'
+                ],
+                correct: [0],
+                explanation: 'صحيح، خاصة عندما لا تتحقق من المرايا والمنطقة المخفية.'
+            },
+            {
+                type: 'dragdrop',
+                question: 'أكمل الجملة:',
+                sentence: 'المشروع الذي هو على الطريق سريع يجب عليك أن [blank]',
+                blanks: 1,
+                options: ['تخفض السرعة', 'تسرع', 'تتوقف', 'تعكس الاتجاه'],
+                correct: ['تخفض السرعة'],
+                explanation: 'يجب تخفيض السرعة عند وجود مشاريع صيانة على الطريق السريع.'
+            },
+            {
+                type: 'multiple',
+                question: 'عن سياقة على طريق به سيارات ترحيل يجب أن؟',
+                options: [
+                    'تخفض السرعة وتنظر في الاتجاهين',
+                    'تسرع للمرور بسرعة',
+                    'تغمض عينيك'
+                ],
+                correct: [0],
+                explanation: 'يجب تخفيض السرعة والانتباه عند وجود سيارات تجارية على الطريق.'
+            },
+        ]
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+        let selectedAnswers = [];
+
+        function updateProgress() {
+            const progress = ((currentQuestion) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function renderQuestion() {
+            const container = document.getElementById('questionContainer');
+            const q = questions[currentQuestion];
+            answered = false;
+            selectedAnswers = [];
+
+            let html = `
+                <div class="question-number">السؤال ${currentQuestion + 1} من ${questions.length}</div>
+                <div class="question-text">${q.question}</div>
+            `;
+
+            if (q.type === 'multiple') {
+                html += '<div class="options">';
+                q.options.forEach((option, index) => {
+                    html += `<div class="option" onclick="selectOption(${index})">${option}</div>`;
+                });
+                html += '</div>';
+            } else if (q.type === 'dragdrop') {
+                html += '<div class="drag-drop-container">';
+                html += `<div class="sentence" id="sentence">${renderSentence(q)}</div>`;
+                html += '<div class="draggable-options" id="draggableOptions">';
+                q.options.forEach((option, index) => {
+                    html += `<div class="draggable" draggable="true" data-value="${option}" data-index="${index}">${option}</div>`;
+                });
+                html += '</div></div>';
+            }
+
+            html += '<div class="feedback" id="feedback"></div>';
+            html += '<div class="buttons">';
+            html += '<button onclick="checkAnswer()" id="checkBtn">تحقق من الإجابة</button>';
+            html += '<button onclick="nextQuestion()" id="nextBtn" style="display:none;">السؤال التالي</button>';
+            html += '</div>';
+
+            container.innerHTML = html;
+            updateProgress();
+
+            if (q.type === 'dragdrop') {
+                initDragDrop();
+            }
+        }
+
+        function renderSentence(q) {
+            let sentence = q.sentence;
+            for (let i = 0; i < q.blanks; i++) {
+                sentence = sentence.replace('[blank]', `<span class="drop-zone" data-index="${i}"></span>`);
+            }
+            return sentence;
+        }
+
+        function selectOption(index) {
+            if (answered) return;
+
+            const options = document.querySelectorAll('.option');
+            const q = questions[currentQuestion];
+
+            if (q.correct.length > 1) {
+                // Multiple selection
+                if (selectedAnswers.includes(index)) {
+                    selectedAnswers = selectedAnswers.filter(i => i !== index);
+                    options[index].classList.remove('selected');
+                } else {
+                    selectedAnswers.push(index);
+                    options[index].classList.add('selected');
+                }
+            } else {
+                // Single selection
+                options.forEach(opt => opt.classList.remove('selected'));
+                options[index].classList.add('selected');
+                selectedAnswers = [index];
+            }
+        }
+
+        function initDragDrop() {
+            const draggables = document.querySelectorAll('.draggable');
+            const dropZones = document.querySelectorAll('.drop-zone');
+
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', e => {
+                    if (!draggable.classList.contains('used')) {
+                        e.dataTransfer.setData('text/plain', draggable.dataset.value);
+                        e.dataTransfer.setData('index', draggable.dataset.index);
+                        draggable.classList.add('dragging');
+                    }
+                });
+
+                draggable.addEventListener('dragend', () => {
+                    draggable.classList.remove('dragging');
+                });
+            });
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', e => {
+                    e.preventDefault();
+                });
+
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    if (answered) return;
+
+                    const value = e.dataTransfer.getData('text/plain');
+                    const dragIndex = e.dataTransfer.getData('index');
+
+                    if (zone.textContent === '') {
+                        zone.textContent = value;
+                        zone.classList.add('filled');
+                        zone.dataset.value = value;
+
+                        const draggable = document.querySelector(`[data-index="${dragIndex}"]`);
+                        draggable.classList.add('used');
+                    }
+                });
+
+                zone.addEventListener('click', () => {
+                    if (!answered && zone.textContent !== '') {
+                        const value = zone.dataset.value;
+                        const draggable = document.querySelector(`[data-value="${value}"]`);
+                        draggable.classList.remove('used');
+                        zone.textContent = '';
+                        zone.classList.remove('filled');
+                        delete zone.dataset.value;
+                    }
+                });
+            });
+        }
+
+        function checkAnswer() {
+            if (answered) return;
+
+            const q = questions[currentQuestion];
+            const feedback = document.getElementById('feedback');
+            let correct = false;
+
+            if (q.type === 'multiple') {
+                if (selectedAnswers.length === 0) {
+                    alert('الرجاء اختيار إجابة');
+                    return;
+                }
+
+                correct = selectedAnswers.length === q.correct.length &&
+                          selectedAnswers.every(ans => q.correct.includes(ans));
+
+                const options = document.querySelectorAll('.option');
+                options.forEach((option, index) => {
+                    if (q.correct.includes(index)) {
+                        option.classList.add('correct');
+                    } else if (selectedAnswers.includes(index)) {
+                        option.classList.add('incorrect');
+                    }
+                });
+            } else if (q.type === 'dragdrop') {
+                const dropZones = document.querySelectorAll('.drop-zone');
+                const answers = Array.from(dropZones).map(zone => zone.dataset.value || '');
+
+                if (answers.some(ans => ans === '')) {
+                    alert('الرجاء ملء جميع الفراغات');
+                    return;
+                }
+
+                correct = answers.every((ans, i) => ans === q.correct[i]);
+
+                dropZones.forEach((zone, i) => {
+                    if (zone.dataset.value === q.correct[i]) {
+                        zone.classList.add('correct');
+                    } else {
+                        zone.classList.add('incorrect');
+                    }
+                });
+            }
+
+            answered = true;
+
+            if (correct) {
+                score++;
+                feedback.className = 'feedback show correct';
+                feedback.textContent = '✓ إجابة صحيحة! ' + q.explanation;
+            } else {
+                feedback.className = 'feedback show incorrect';
+                feedback.textContent = '✗ إجابة خاطئة. ' + q.explanation;
+            }
+
+            document.getElementById('checkBtn').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const container = document.getElementById('questionContainer');
+            const percentage = Math.round((score / questions.length) * 100);
+            let message = '';
+
+            if (percentage >= 80) {
+                message = 'ممتاز! لقد أجبت بشكل رائع';
+            } else if (percentage >= 60) {
+                message = 'جيد! ولكن يمكنك التحسين';
+            } else {
+                message = 'تحتاج إلى مزيد من الدراسة';
+            }
+
+            container.innerHTML = `
+                <div class="result-container">
+                    <h2>انتهى الاختبار!</h2>
+                    <div class="score">${percentage}%</div>
+                    <p class="result-message">لقد حصلت على ${score} من ${questions.length}</p>
+                    <p class="result-message">${message}</p>
+                    <button onclick="location.reload()">إعادة الاختبار</button>
+                </div>
+            `;
+
+            updateProgress();
+        }
+
+        renderQuestion();
+    </script>
+</body>
+</html>
